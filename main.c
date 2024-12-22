@@ -29,21 +29,11 @@ int main(int argc, char** argv)
       printf("tsokoban error: failed to read '%s' file",filename);
       return -1;
     }
-  find_char();
-  /*
-  for(int y = 0;y<level_height;++y)
-    {
-      for(int x = 0;x<level_width;++x)
-	{
-	  printf("%c",level[y*level_width+x]);
-	}
-      printf("\n");
-    }
-  */
+  find_char_and_fpoints(); //get the position of character
   
-    init_game();
-    run_game();
-    free_game();
+  init_game();
+  run_game();
+  free_game();
 
   return 0;
 }

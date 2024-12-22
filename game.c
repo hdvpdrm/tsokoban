@@ -3,8 +3,10 @@
 int level_width = 0;
 int level_height = 0;
 char* level = NULL;
-
+size_t fpoints_size = 0;
+Vector2i* finish_points = NULL;
 Vector2i char_pos;
+
 
 void init_game(void)
 {
@@ -23,6 +25,8 @@ void init_game(void)
 void free_game(void)
 {
   endwin();
+  free(finish_points);
+  free(level);
 }
 void run_game(void)
 {
@@ -31,13 +35,12 @@ void run_game(void)
       draw_map();
       refresh();
 	
-      char option = getch();
-      _move(option);
-      ++turn_counter;
+      _move(getch());
+      update_fpoints();
     }
 
 }
-void find_char(void)
+void find_char_and_fpoints(void)
 {
   for(int y = 0;y<level_height;++y)
     {
@@ -47,7 +50,33 @@ void find_char(void)
 	    {
 	      char_pos.x = x;
 	      char_pos.y = y;
-	      return;
+	    }
+	  else if(ELEMENT(x,y) == '.')
+	    {	      
+	      if(finish_points == NULL)
+		{
+		  finish_points = (Vector2i*)malloc(sizeof(Vector2i));
+		  if(!finish_points)
+		    {
+		      printf("tsokoban error: failed to allocate memory!");
+		      exit(-3);
+		    }
+		  finish_points[0].x = x;
+		  finish_points[0].y = y;
+		  ++fpoints_size;
+		}
+	      else
+		{
+		  ++fpoints_size;
+		  finish_points = realloc(finish_points,sizeof(Vector2i)*fpoints_size);
+		  if(!finish_points)
+		    {
+		      printf("tsokoban error: failed to allocate memory!");
+		      exit(-3);
+		    }
+		  finish_points[fpoints_size-1].x = x;
+		  finish_points[fpoints_size-1].y = y;
+		}	     
 	    }
 	}
     }
@@ -101,6 +130,8 @@ void __move(Vector2i dir)
     {  
       char_pos = move_el(dir,char_pos,'@');
     }
+
+  ++turn_counter;
 }
 Vector2i move_el(Vector2i dir, Vector2i el_pos, char el)
 {
@@ -117,4 +148,17 @@ bool can_move(Vector2i dir, Vector2i el_pos)
          nv.x < level_width  &&
          nv.y < level_height &&
     ELEMENT(nv.x,nv.y) != '#';
+}
+
+void update_fpoints(void)
+{
+  for(size_t i = 0;i<fpoints_size;++i)
+    {
+      int x = finish_points[i].x;
+      int y = finish_points[i].y;
+      if(ELEMENT(x,y) != '.' && ELEMENT(x,y) != '@')
+	{
+	  ELEMENT(x,y) = '.';
+	}
+    }
 }
