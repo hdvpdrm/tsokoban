@@ -24,11 +24,6 @@ void free_game(void)
 {
   endwin();
 }
-void draw_game(void)
-{
-
-}
-
 void run_game(void)
 {
   while(1)
@@ -85,7 +80,7 @@ void _move(char key)
 {
   if(key == 'h' || key == 'a')
     {
-      if(can_move(-1,0))	
+      if(can_move(-1,0))      
 	move_char(-1,0);
     }
   if(key == 'l' || key == 'd')

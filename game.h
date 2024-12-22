@@ -17,7 +17,6 @@ extern int char_x, char_y;
 
 void init_game(void);
 void free_game(void);
-void draw_game(void);
 void run_game(void);
 
 void find_char(void);
