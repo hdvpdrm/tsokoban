@@ -20,17 +20,23 @@ int main(int argc, char** argv)
 }
 int parse_arguments(int argc, char** argv)
 {
-  if(argc > 2) return -1; // incorrect number of arguments
-  if(argc == 1) return -2; //show help
+  if(argc == 1) return 0; //start game from 0 level
 
-  if(strcmp(argv[1],"-h") ||
-     strcmp(argv[1],"--help"))
-    return -2;
+  if(argc == 2)
+    {
+      //return help
+      if(strcmp(argv[1],"-h") == 0     ||
+	 strcmp(argv[1],"--help") == 0 ||
+	 !is_numeric(argv[1]))
+	{
+	  return -2;
+	}
+      
+      //return level if everything is ok
+      return atoi(argv[1]);
+    }
 
-  if(!is_numeric(argv[1]))
-    return -2;
-
-  return atoi(argv[1]);
+  return -2;
 }
 bool is_numeric(char* str)
 {
