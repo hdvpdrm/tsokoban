@@ -4,8 +4,7 @@ int level_width = 0;
 int level_height = 0;
 char* level = NULL;
 
-int char_x = -1;
-int char_y = -1;
+Vector2i char_pos;
 
 void init_game(void)
 {
@@ -31,7 +30,6 @@ void run_game(void)
       draw_map();
       refresh();
 	
-      draw_game();
       char option = getch();
       _move(option);
     }
@@ -43,10 +41,10 @@ void find_char(void)
     {
       for(int x = 0;x<level_width;++x)
 	{
-	  if(level[y*level_width+x] == '@')
+	  if(ELEMENT(x,y) == '@')
 	    {
-	      char_x = x;
-	      char_y = y;
+	      char_pos.x = x;
+	      char_pos.y = y;
 	      return;
 	    }
 	}
@@ -58,51 +56,61 @@ void draw_map(void)
     {
       for(int x = 0;x<level_width;++x)
 	{
-	  mvaddch(qw+x,qh+y,level[y*level_width+x]);
+	  mvaddch(qw+x,qh+y,ELEMENT(x,y));
 	}
     }
 }
-bool can_move(int y, int x)
+void _move(char option)
 {
-  int nx = char_x + x;
-  int ny = char_y + y;
-  if(nx < 0 ||
-     ny < 0 ||
-     nx > level_width ||
-     ny > level_height)
-    return false;
-  
-  if(level[ny*level_width+nx] == '#') return false;
-  
-  return true;
-}
-void _move(char key)
-{
-  if(key == 'h' || key == 'a')
+  if(option == 'w')
     {
-      if(can_move(-1,0))      
-	move_char(-1,0);
+      __move(UP);
     }
-  if(key == 'l' || key == 'd')
+  if(option == 'a')
     {
-      if(can_move(1,0))
-	move_char(1,0);
+      __move(LEFT);
     }
-  if(key == 'j' || key == 'w')
+  if(option == 'd')
     {
-      if(can_move(0,-1))
-	move_char(0,-1);
+      __move(RIGHT);
     }
-  if(key == 'k' || key == 's')
+  if(option == 's')
     {
-      if(can_move(0,1))
-	move_char(0,1);
+      __move(DOWN);
     }
 }
-void move_char(int y, int x)
+void __move(Vector2i dir)
 {
-  level[char_y*level_width+char_x] = ' ';
-  char_x+=x;
-  char_y+=y;
-  level[char_y*level_width+char_x] = '@';
+  if(!can_move(dir,char_pos)) return;
+
+  Vector2i next_pos = vector2d_add(char_pos,dir);
+  if(IS_BOX(next_pos.x,next_pos.y))
+    {
+      next_pos = vector2d_add(next_pos,dir);
+      if(IS_FREE(next_pos.x,next_pos.y))
+	{
+	  ELEMENT(next_pos.x,next_pos.y) = '$';
+	  char_pos =  move_el(dir,char_pos,'@');
+	}
+    }
+  else
+    {  
+      char_pos = move_el(dir,char_pos,'@');
+    }
+}
+Vector2i move_el(Vector2i dir, Vector2i el_pos, char el)
+{
+  ELEMENT(el_pos.x,el_pos.y) = ' ';
+  Vector2i np = vector2d_add(el_pos,dir);
+  ELEMENT(np.x,np.y) = el;
+  return np;
+}
+bool can_move(Vector2i dir, Vector2i el_pos)
+{
+  Vector2i nv = vector2d_add(el_pos,dir);
+  return nv.x > 0 &&
+         nv.y > 0 &&
+         nv.x < level_width  &&
+         nv.y < level_height &&
+    ELEMENT(nv.x,nv.y) != '#';
 }

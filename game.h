@@ -1,7 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 #include<ncurses.h>
-#include<stdlib.h>
+#include<ctype.h>
+#include"vector.h"
 
 //width and height of terminal
 static int width, height;
@@ -13,7 +14,13 @@ static int qw, qh;
 extern int level_width, level_height;
 extern char* level;
 
-extern int char_x, char_y;
+extern Vector2i char_pos;
+
+
+#define ELEMENT(x,y) level[y*level_width+x]
+#define IS_BOX(x,y)  ELEMENT(x,y) == '$'
+#define IS_FREE(x,y) isspace(ELEMENT(x,y))
+
 
 void init_game(void);
 void free_game(void);
@@ -22,7 +29,8 @@ void run_game(void);
 void find_char(void);
 void draw_map(void);
 
-bool can_move(int y, int x); //direction values
-void _move(char key);
-void move_char(int y, int x);
+void _move(char option);
+void __move(Vector2i dir);
+Vector2i move_el(Vector2i dir, Vector2i el_pos, char el);
+bool can_move(Vector2i dir, Vector2i el_pos);
 #endif
