@@ -11,12 +11,13 @@ void init_game(void)
   initscr();
   cbreak();
   noecho();
+  curs_set(0);
   keypad(stdscr, TRUE);
   
   getmaxyx(stdscr,width,height);
 
-  qw = (width/2)-5;
-  qh = (height/2)-5;
+  qw = (width/2)-10;
+  qh = (height/2)-10;
 
 }
 void free_game(void)
@@ -32,6 +33,7 @@ void run_game(void)
 	
       char option = getch();
       _move(option);
+      ++turn_counter;
     }
 
 }
@@ -59,6 +61,8 @@ void draw_map(void)
 	  mvaddch(qw+x,qh+y,ELEMENT(x,y));
 	}
     }
+
+  mvprintw(qw+level_width-1,qh,"TURN:%d",turn_counter);
 }
 void _move(char option)
 {
