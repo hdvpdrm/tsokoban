@@ -1,14 +1,17 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include<ctype.h>
 #include<stdbool.h>
+#include"level.h"
+#include"game.h"
+
+#define LEVEL_PATH "levels/Level%d"
 
 int parse_arguments(int argc, char** argv);
-bool is_numeric(char* str);
 void print_help(void);
 int main(int argc, char** argv)
 {
+  //get the level number
   int result = parse_arguments(argc, argv);
   if(result == -1 || result == -2)
     {
@@ -16,11 +19,37 @@ int main(int argc, char** argv)
       return 0;
     }
 
+  //compute name of file that contains level
+  int size = snprintf(NULL,0,LEVEL_PATH,result);//get the size of the string
+  char filename[size+1];
+  snprintf(filename,sizeof filename,LEVEL_PATH,result);
+
+  if(!read_level(&level,filename,&level_width,&level_height))
+    {
+      printf("tsokoban error: failed to read '%s' file",filename);
+      return -1;
+    }
+  find_char();
+  /*
+  for(int y = 0;y<level_height;++y)
+    {
+      for(int x = 0;x<level_width;++x)
+	{
+	  printf("%c",level[y*level_width+x]);
+	}
+      printf("\n");
+    }
+  */
+  
+    init_game();
+    run_game();
+    free_game();
+
   return 0;
 }
 int parse_arguments(int argc, char** argv)
 {
-  if(argc == 1) return 0; //start game from 0 level
+  if(argc == 1) return 1; //start game from first level
 
   if(argc == 2)
     {
@@ -37,15 +66,6 @@ int parse_arguments(int argc, char** argv)
     }
 
   return -2;
-}
-bool is_numeric(char* str)
-{
-  for(int i = 0;i<strlen(str);++i)
-    {
-      if(!isdigit(str[i]))return false;
-    }
-
-  return true;
 }
 void print_help(void)
 {
