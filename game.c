@@ -1,12 +1,11 @@
 #include"game.h"
 
-int level_width = 0;
-int level_height = 0;
-char* level = NULL;
-size_t fpoints_size = 0;
+int level_width         = 0;
+int level_height        = 0;
+char* level             = NULL;
+size_t fpoints_size     = 0;
 Vector2i* finish_points = NULL;
 Vector2i char_pos;
-
 
 void init_game(void)
 {
@@ -20,7 +19,6 @@ void init_game(void)
 
   qw = (width/2)-10;
   qh = (height/2)-10;
-
 }
 void free_game(void)
 {
@@ -37,6 +35,7 @@ void run_game(void)
 	
       _move(getch());
       update_fpoints();
+      count_boxes();
     }
 
 }
@@ -52,34 +51,38 @@ void find_char_and_fpoints(void)
 	      char_pos.y = y;
 	    }
 	  else if(ELEMENT(x,y) == '.')
-	    {	      
-	      if(finish_points == NULL)
-		{
-		  finish_points = (Vector2i*)malloc(sizeof(Vector2i));
-		  if(!finish_points)
-		    {
-		      printf("tsokoban error: failed to allocate memory!");
-		      exit(-3);
-		    }
-		  finish_points[0].x = x;
-		  finish_points[0].y = y;
-		  ++fpoints_size;
-		}
-	      else
-		{
-		  ++fpoints_size;
-		  finish_points = realloc(finish_points,sizeof(Vector2i)*fpoints_size);
-		  if(!finish_points)
-		    {
-		      printf("tsokoban error: failed to allocate memory!");
-		      exit(-3);
-		    }
-		  finish_points[fpoints_size-1].x = x;
-		  finish_points[fpoints_size-1].y = y;
-		}	     
+	    {
+	      add_fpoint(x,y);
 	    }
 	}
     }
+}
+void add_fpoint(int x, int y)
+{
+  if(finish_points == NULL)
+    {
+      finish_points = (Vector2i*)malloc(sizeof(Vector2i));
+      if(!finish_points)
+	{
+	  printf("tsokoban error: failed to allocate memory!");
+	  exit(-3);
+	}
+      finish_points[0].x = x;
+      finish_points[0].y = y;
+      ++fpoints_size;
+    }
+  else
+    {
+      ++fpoints_size;
+      finish_points = realloc(finish_points,sizeof(Vector2i)*fpoints_size);
+      if(!finish_points)
+	{
+	  printf("tsokoban error: failed to allocate memory!");
+	  exit(-3);
+	}
+      finish_points[fpoints_size-1].x = x;
+      finish_points[fpoints_size-1].y = y;
+    }	     
 }
 void draw_map(void)
 {  
@@ -91,7 +94,7 @@ void draw_map(void)
 	}
     }
 
-  mvprintw(qw+level_width-1,qh,"TURN:%d",turn_counter);
+  mvprintw(qw+level_width-1,qh-3,"TURN:%d\tBOXES:%d/%d",turn_counter,box_counter,fpoints_size);
 }
 void _move(char option)
 {
@@ -125,6 +128,11 @@ void __move(Vector2i dir)
 	  ELEMENT(next_pos.x,next_pos.y) = '$';
 	  char_pos =  move_el(dir,char_pos,'@');
 	}
+      else if(IS_FPOINT(next_pos.x,next_pos.y))
+	{
+	  ELEMENT(next_pos.x,next_pos.y) = '$';
+	  char_pos =  move_el(dir,char_pos,'@');
+	}
     }
   else
     {  
@@ -143,22 +151,37 @@ Vector2i move_el(Vector2i dir, Vector2i el_pos, char el)
 bool can_move(Vector2i dir, Vector2i el_pos)
 {
   Vector2i nv = vector2d_add(el_pos,dir);
-  return nv.x > 0 &&
-         nv.y > 0 &&
+  
+  return nv.x > 0            &&
+         nv.y > 0            &&
          nv.x < level_width  &&
          nv.y < level_height &&
     ELEMENT(nv.x,nv.y) != '#';
 }
-
 void update_fpoints(void)
 {
   for(size_t i = 0;i<fpoints_size;++i)
     {
       int x = finish_points[i].x;
       int y = finish_points[i].y;
-      if(ELEMENT(x,y) != '.' && ELEMENT(x,y) != '@')
+      if(ELEMENT(x,y) != '.' &&
+	 ELEMENT(x,y) != '@' &&
+	 ELEMENT(x,y) != '$')
 	{
 	  ELEMENT(x,y) = '.';
 	}
     }
+}
+void count_boxes(void)
+{
+  int counter = 0;
+  for(size_t i = 0;i<fpoints_size;++i)
+    {
+      int x = finish_points[i].x;
+      int y = finish_points[i].y;
+      if(ELEMENT(x,y) == '$') ++counter;	    
+    }
+
+  int diff = box_counter - counter;
+  box_counter-=diff;
 }
