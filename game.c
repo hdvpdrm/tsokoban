@@ -33,8 +33,9 @@ void run_game(void)
       draw_map();
       refresh();
 	
-      _move(getch());
+      if(_move(getch()))break;
       update_fpoints();
+
       count_boxes();
     }
 
@@ -96,24 +97,47 @@ void draw_map(void)
 
   mvprintw(qw+level_width-1,qh-3,"TURN:%d\tBOXES:%d/%d",turn_counter,box_counter,fpoints_size);
 }
-void _move(char option)
+bool _move(char option)
 {
+  Vector2i old_cpos = char_pos;
   if(option == 'w')
     {
       __move(UP);
+      
+      if(!VEQ(old_cpos,char_pos))
+	save_action(-1,0);
     }
   if(option == 'a')
     {
       __move(LEFT);
+
+      if(!VEQ(old_cpos,char_pos))
+	save_action(0,-1);
     }
   if(option == 'd')
     {
       __move(RIGHT);
+
+      if(!VEQ(old_cpos,char_pos))
+	save_action(0,1);
     }
   if(option == 's')
     {
       __move(DOWN);
+
+      if(!VEQ(old_cpos,char_pos))
+	save_action(1,0);
     }
+  if(option == 'z')
+    {
+      undo();
+    }
+  if(option == 'q')
+    {
+      return true;
+    }
+
+  return false;
 }
 void __move(Vector2i dir)
 {
@@ -184,4 +208,61 @@ void count_boxes(void)
 
   int diff = box_counter - counter;
   box_counter-=diff;
+}
+void save_action(int x, int y)
+{
+    if (actions_list_counter == 0)
+      {
+        actions_list.data.dir.x = x;
+        actions_list.data.dir.y = y;
+        actions_list.prev = NULL;
+        last_action = &actions_list;
+    }
+    else
+      {
+        last_action->next = (struct Action*)malloc(sizeof(struct Action));
+        if (!last_action->next)
+	  {
+            printf("Error: failed to save action!\n");
+            exit(-1);
+        }
+
+        last_action->next->data.dir.x = x;
+        last_action->next->data.dir.y = y;
+        last_action->next->prev = last_action;
+        last_action = last_action->next;
+    }
+    actions_list_counter++;
+}
+
+// Function to undo the last action
+void undo(void)
+{
+    if (actions_list_counter > 0 && last_action != NULL)
+      {
+        // Update character position based on the last action
+	ELEMENT(char_pos.x,char_pos.y) = ' ';
+        char_pos.x -= last_action->data.dir.x;
+        char_pos.y -= last_action->data.dir.y;
+	ELEMENT(char_pos.x,char_pos.y) = '@';
+
+        // Free the last action and update the list
+        struct Action* prev_action = last_action->prev;
+        if (last_action != &actions_list)
+	  {
+            free(last_action);
+	  }
+        last_action = prev_action;
+        last_action = prev_action;
+
+	if (last_action) {
+            last_action->next = NULL;
+        } else {
+            // If there are no more actions, reset the actions_list
+            actions_list.next = NULL;
+            actions_list.prev = NULL;
+        }
+        actions_list_counter--;
+	turn_counter--;
+    }
 }
