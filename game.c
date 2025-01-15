@@ -100,33 +100,36 @@ void draw_map(void)
 bool _move(char option)
 {
   Vector2i old_cpos = char_pos;
+  
+  Vector2i oldbox_pos = vector2d_create(-1,-1);
+  Vector2i newbox_pos = vector2d_create(-1,-1);
   if(option == 'w')
     {
-      __move(UP);
+      __move(UP,&oldbox_pos,&newbox_pos);
       
       if(!VEQ(old_cpos,char_pos))
-	save_action(-1,0);
+	save_action(-1,0,oldbox_pos,newbox_pos);
     }
   if(option == 'a')
     {
-      __move(LEFT);
+      __move(LEFT,&oldbox_pos,&newbox_pos);
 
       if(!VEQ(old_cpos,char_pos))
-	save_action(0,-1);
+	save_action(0,-1,oldbox_pos,newbox_pos);
     }
   if(option == 'd')
     {
-      __move(RIGHT);
+      __move(RIGHT,&oldbox_pos,&newbox_pos);
 
       if(!VEQ(old_cpos,char_pos))
-	save_action(0,1);
+	save_action(0,1,oldbox_pos,newbox_pos);
     }
   if(option == 's')
     {
-      __move(DOWN);
+      __move(DOWN,&oldbox_pos,&newbox_pos);
 
       if(!VEQ(old_cpos,char_pos))
-	save_action(1,0);
+	save_action(1,0,oldbox_pos,newbox_pos);
     }
   if(option == 'z')
     {
@@ -139,7 +142,7 @@ bool _move(char option)
 
   return false;
 }
-void __move(Vector2i dir)
+void __move(Vector2i dir,Vector2i* oldbox_pos, Vector2i* newbox_pos)
 {
   if(!can_move(dir,char_pos)) return;
 
@@ -148,14 +151,22 @@ void __move(Vector2i dir)
     {
       next_pos = vector2d_add(next_pos,dir);
       if(IS_FREE(next_pos.x,next_pos.y))
-	{
+	{	  
 	  ELEMENT(next_pos.x,next_pos.y) = '$';
 	  char_pos =  move_el(dir,char_pos,'@');
+
+	  *oldbox_pos = vector2d_sub(next_pos,dir);
+	  newbox_pos->x = next_pos.x;
+	  newbox_pos->y = next_pos.y;
 	}
       else if(IS_FPOINT(next_pos.x,next_pos.y))
 	{
 	  ELEMENT(next_pos.x,next_pos.y) = '$';
 	  char_pos =  move_el(dir,char_pos,'@');
+
+	  *oldbox_pos = vector2d_sub(next_pos,dir);
+	  newbox_pos->x = next_pos.x;
+	  newbox_pos->y = next_pos.y;
 	}
     }
   else
@@ -209,12 +220,16 @@ void count_boxes(void)
   int diff = box_counter - counter;
   box_counter-=diff;
 }
-void save_action(int x, int y)
+void save_action(int x, int y,Vector2i oldbox_pos, Vector2i newbox_pos)
 {
     if (actions_list_counter == 0)
       {
         actions_list.data.dir.x = x;
         actions_list.data.dir.y = y;
+
+	vector2d_fill(&actions_list.box.oldbox_pos,&oldbox_pos);
+	vector2d_fill(&actions_list.box.newbox_pos,&newbox_pos);
+	
         actions_list.prev = NULL;
         last_action = &actions_list;
     }
@@ -229,6 +244,10 @@ void save_action(int x, int y)
 
         last_action->next->data.dir.x = x;
         last_action->next->data.dir.y = y;
+	vector2d_fill(&last_action->box.oldbox_pos,&oldbox_pos);
+	vector2d_fill(&last_action->box.newbox_pos,&newbox_pos);
+
+	
         last_action->next->prev = last_action;
         last_action = last_action->next;
     }
@@ -246,6 +265,20 @@ void undo(void)
         char_pos.y -= last_action->data.dir.y;
 	ELEMENT(char_pos.x,char_pos.y) = '@';
 
+	// Update box
+	if(last_action->box.oldbox_pos.x > 0)
+	  {
+	    int oldx = last_action->box.oldbox_pos.x;
+	    int oldy = last_action->box.oldbox_pos.y;
+
+	    int newx = last_action->box.newbox_pos.x;
+	    int newy = last_action->box.newbox_pos.y;
+	    
+	    ELEMENT(newx,newy) = ' ';
+	    ELEMENT(oldx,oldy) = '$';
+	  }
+
+	
         // Free the last action and update the list
         struct Action* prev_action = last_action->prev;
         if (last_action != &actions_list)
@@ -266,3 +299,4 @@ void undo(void)
 	turn_counter--;
     }
 }
+

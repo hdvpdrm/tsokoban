@@ -42,13 +42,13 @@ void add_fpoint(int x, int y);
 void draw_map(void);
 
 bool _move(char option);
-void __move(Vector2i dir);
+void __move(Vector2i dir, Vector2i* oldbox_pos, Vector2i* newbox_pos);
 Vector2i move_el(Vector2i dir, Vector2i el_pos, char el);
 bool can_move(Vector2i dir, Vector2i el_pos);
 
 void update_fpoints(void);
 void count_boxes(void);
 
-void save_action(int x, int y);
+void save_action(int x, int y,Vector2i oldbox_pos, Vector2i newbox_pos);
 void undo(void);
 #endif
