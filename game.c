@@ -17,7 +17,7 @@ void init_game(void)
   
   getmaxyx(stdscr,width,height);
 
-  qw = (width/2)-10;
+  qw = (width/2)-5;
   qh = (height/2)-10;
 }
 void free_game(void)
@@ -37,6 +37,23 @@ void run_game(void)
       update_fpoints();
 
       count_boxes();
+
+      if(box_counter == fpoints_size)
+	{
+	  clear();
+	  refresh();
+
+	  int max_y, max_x;
+	  getmaxyx(stdscr, max_y, max_x);
+	  
+	  int center_y = max_y / 2;
+	  int center_x = max_x / 2;
+	  move(center_y, center_x);
+	  
+	  printw("You win in %d turns!\n",turn_counter);
+	  getch();
+	  break;
+	}
     }
 
 }
@@ -95,7 +112,7 @@ void draw_map(void)
 	}
     }
 
-  mvprintw(qw+level_width-1,qh-3,"TURN:%d\tBOXES:%d/%d",turn_counter,box_counter,fpoints_size);
+    mvprintw(qw+level_width-1,qh-3,"TURN:%d\tBOXES:%d/%d",turn_counter,box_counter,fpoints_size);
 }
 bool _move(char option)
 {
