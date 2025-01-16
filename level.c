@@ -1,3 +1,4 @@
+
 #include"level.h"
 
 bool is_numeric(char* str)
@@ -25,6 +26,7 @@ void replaces_fillers(char* line)
   for(int i = 0;i<strlen(line);++i)
     {
       if(line[i] == '+')line[i] = ' ';
+      if(line[i] == '*')line[i] = ' ';
     }
 }
 
@@ -46,8 +48,7 @@ bool read_level(char** output, char* filename, int* _width, int* _height)
   while( (read = getline(&line,&len,level)) != -1)
     {
       if(counter == 0) if(!parse_dim_val(&width,line)) return false;       //get width
-      if(counter == 1) if(!parse_dim_val(&height,line)) return false;      //get height
-
+      if(counter == 1) if(!parse_dim_val(&height,line)) return false;      //get heightx
       if(*output == NULL && counter > 1)
 	{
 	  //create buffer with map
