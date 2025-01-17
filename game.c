@@ -17,7 +17,7 @@ void init_game(void)
   
   getmaxyx(stdscr,width,height);
 
-  qw = (width/2)-5;
+  qw = (width/2) - level_width/2;
   qh = (height/2)-10;
 }
 void free_game(void)
