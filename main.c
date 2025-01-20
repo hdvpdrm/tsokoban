@@ -77,5 +77,11 @@ void print_help(void)
   printf("tsokoban: simple ncurses based sokoban.\n\n"
 	 "tsokoban [-h] [--help] - print this message.\n"
 	 "tsokoban n - run game and play nth level.\n"
-	 "tsokoban - run game and start at the first level.\n");
+	 "tsokoban - run game and start at the first level.\n"
+	 "tsokoban n solution_file - execute solution for n level.\n\n\n"
+	 "Solution is simple sequence of 'w','a','s','d'.\n"
+	 "w is up\n"
+	 "s is down\n"
+	 "a is left\n"
+	 "d is right\n");
 }
