@@ -57,6 +57,61 @@ void run_game(void)
     }
 
 }
+void run_programmed_game(char** command_file)
+{
+  FILE* f = fopen(*command_file,"r");
+  if(!f)
+    {
+      printf("failed to open '%s' file!",*command_file);
+    }
+
+  int ch;
+  while ((ch = fgetc(f)) != EOF)
+    {
+      draw_map();
+      refresh();
+
+      
+      char command = (char)ch;
+
+      if(isspace(command))continue;
+      if(command != 'w' &&
+	 command != 's' &&
+	 command != 'a' &&
+	 command != 'd')
+	{
+	  printf("incorrect command '%c'\n",command);
+	  exit(-2);
+	}
+
+      
+      if(_move(command))break;
+      update_fpoints();
+
+      count_boxes();
+      
+      if(box_counter == fpoints_size)
+	{
+	  clear();
+	  refresh();
+
+	  int max_y, max_x;
+	  getmaxyx(stdscr, max_y, max_x);
+	  
+	  int center_y = max_y / 2;
+	  int center_x = max_x / 2;
+	  move(center_y, center_x);
+	  
+	  printw("You win in %d turns!\n",turn_counter);
+	  getch();
+	  break;
+	}
+
+      sleep(1);
+    }
+
+  fclose(f);
+}
 void find_char_and_fpoints(void)
 {
   for(int y = 0;y<level_height;++y)

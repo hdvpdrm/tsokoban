@@ -3,6 +3,7 @@
 #include<ncurses.h>
 #include<ctype.h>
 #include<stdio.h>
+#include<unistd.h>
 #include<stdlib.h>
 #include"vector.h"
 #include"action.h"
@@ -35,7 +36,9 @@ extern Vector2i* finish_points;
 
 void init_game(void);
 void free_game(void);
+
 void run_game(void);
+void run_programmed_game(char** command_file);
 
 void find_char_and_fpoints(void);
 void add_fpoint(int x, int y);

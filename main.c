@@ -36,6 +36,9 @@ int main(int argc, char** argv)
   init_game();
   if(command_file == NULL)
     run_game();
+  else
+    run_programmed_game(&command_file);
+  
   free_game();
 
   return 0;
